@@ -2,79 +2,7 @@
 
 <img width="1077" height="542" alt="image" src="https://github.com/user-attachments/assets/dd7735c1-5080-403b-84bd-c99a15a1c269" />
 
-
-> **Simulação educacional** de técnicas de detecção usadas por anti-cheats como o Vanguard (Riot Games) para identificar injeção de input de mouse — macros por software, KM Box, adaptadores 2PC e emuladores de hardware.
-
----
-
-## 🇧🇷 Português
-
-### O que é este projeto?
-
-Este é um utilitário de diagnóstico em **C# / .NET 8** que captura dados brutos de entrada de hardware diretamente da API do Windows (`User32.dll / Raw Input`) e aplica análise estatística em tempo real para determinar se o movimento do mouse está sendo gerado por um **periférico físico real** ou por **injeção artificial de input**.
-
-O projeto simula, em nível conceitual, a lógica que sistemas como o **Vanguard** da Riot Games utilizam para detectar trapaças baseadas em movimentação de mouse — como:
-
-- **Macku** — placa de desenvolvimento (hardware embarcado) que emula um dispositivo HID USB para injetar movimentos de mouse diretamente no barramento, contornando o driver do sistema operacional
-- **KM Box** e variantes (dispositivos que emulam teclado/mouse via USB entre dois PCs)
-- **Configurações 2PC** (PC secundário injetando input no PC principal via HDMI capture + emulador HID)
-- **Firmwares modificados** que entregam pacotes fora do padrão físico do barramento USB
-- **Macros por software** (AutoHotkey, scripts de recoil, aim assist artificial)
-
-### Como funciona a detecção?
-
-A chave está em medir a **imperfeição natural do sinal físico**.
-
-No mundo real, nenhum mouse físico consegue enviar pacotes com intervalos matematicamente perfeitos. O hardware USB, o cabo, o sensor óptico e até o tremor da mão introduzem micro-variações de tempo chamadas de **jitter**. Um anti-cheat explora exatamente isso:
-
-| Característica | Hardware Físico Real | Injeção por Software/Hardware |
-|---|---|---|
-| Intervalo entre pacotes | Varia ligeiramente (ex: 1.98ms, 2.01ms, 1.99ms) | Perfeito ou em rajadas (0.0000ms, 0.0000ms) |
-| Desvio padrão (σ) | ≥ 0.06 ms (jitter natural) | ≤ 0.015 ms (precisão inumana) |
-| Burst rate | < 10% mesmo em movimentos agressivos | > 20% consistentemente |
-| Frequência virtual | Estável em torno do polling rate do hardware | Picos absurdos de 2000–9000 Hz |
-
-### Algoritmo implementado
-
-1. **Captura de baixo nível (thread-safe):** A função `WndProc` intercepta eventos `WM_INPUT` sem nenhuma alocação de heap (`stackalloc`) e sem I/O, registrando o timestamp com `Stopwatch` de alta precisão. Os dados são imediatamente enfileirados em uma `ConcurrentQueue`.
-
-2. **Thread de análise separada:** Uma thread de segundo plano consome a fila, calcula o Δt entre pacotes e atualiza uma janela deslizante de 100 amostras.
-
-3. **Métricas calculadas:**
-   - **Desvio padrão (σ):** Mede a regularidade do sinal. Sinal artificial tem σ próximo de zero.
-   - **Burst rate:** Percentual de pacotes com Δt < 0.5 ms — fisicamente impossível no barramento USB real.
-
-4. **Veredito em tempo real:**
-   - ✅ **NATURAL** — σ ≥ 0.06 ms e bursts < 10%
-   - ⚠️ **SUSPEITO** — σ < 0.06 ms ou bursts entre 10–20%
-   - 🔴 **INJEÇÃO DETECTADA** — σ ≤ 0.015 ms ou bursts > 20%
-
-5. **Visualização gráfica:**
-   - **Sparkline** dos últimos 60 pacotes (barras curtas vermelhas = burst)
-   - **Histograma** de distribuição de intervalos por faixa de polling rate
-
-### Limiares calibrados empiricamente
-
-Os thresholds foram validados com hardware físico real:
-- Movendo o mouse normalmente: burst rate < 5%
-- Movendo o mouse de forma extremamente agressiva: burst rate pode chegar a ~20%
-- Injeção por software/KM Box: burst rate consistentemente acima de 20%
-
-### Como usar
-
-**Requisitos:** .NET 8 SDK, Windows 10/11 x64
-
-```powershell
-git clone https://github.com/Withoutbytes/mouse-polling-monitor.git
-cd mouse-polling-monitor
-dotnet run -c Release
-```
-
-> ⚠️ Execute em um **terminal real** (PowerShell, CMD ou Windows Terminal) — não em terminal integrado de IDE — para que o dashboard gráfico renderize corretamente.
-
-### Aviso legal
-
-Este projeto é estritamente **educacional**. Seu objetivo é demonstrar como sistemas de detecção funcionam, não fornecer meios para contorná-los. O uso de cheats em jogos online viola os termos de serviço dos títulos e pode resultar em banimento permanente.
+> **Educational simulation** of detection techniques used by anti-cheats like Vanguard (Riot Games) to identify mouse input injection — Macku, KM Box, 2PC adapters and hardware emulators.
 
 ---
 
@@ -129,7 +57,7 @@ In the real world, no physical mouse can deliver packets with mathematically per
 Thresholds were validated against real physical hardware:
 - Normal mouse movement: burst rate < 5%
 - Extremely aggressive mouse movement: burst rate may reach ~20%
-- Software injection / KM Box: burst rate consistently above 20%
+- Software injection / KM Box / Macku: burst rate consistently above 20%
 
 ### How to use
 
@@ -146,6 +74,77 @@ dotnet run -c Release
 ### Legal disclaimer
 
 This project is strictly **educational**. Its purpose is to demonstrate how detection systems work, not to provide means to circumvent them. Using cheats in online games violates the terms of service of those titles and may result in permanent bans.
+
+---
+
+## 🇧🇷 Português
+
+### O que é este projeto?
+
+Este é um utilitário de diagnóstico em **C# / .NET 8** que captura dados brutos de entrada de hardware diretamente da API do Windows (`User32.dll / Raw Input`) e aplica análise estatística em tempo real para determinar se o movimento do mouse está sendo gerado por um **periférico físico real** ou por **injeção artificial de input**.
+
+O projeto simula, em nível conceitual, a lógica que sistemas como o **Vanguard** da Riot Games utilizam para detectar trapaças baseadas em movimentação de mouse — como:
+
+- **Macku** — placa de desenvolvimento (hardware embarcado) que emula um dispositivo HID USB para injetar movimentos de mouse diretamente no barramento, contornando o driver do sistema operacional
+- **KM Box** e variantes (dispositivos que emulam teclado/mouse via USB entre dois PCs)
+- **Configurações 2PC** (PC secundário injetando input no PC principal via HDMI capture + emulador HID)
+- **Firmwares modificados** que entregam pacotes fora do padrão físico do barramento USB
+- **Macros por software** (AutoHotkey, scripts de recoil, aim assist artificial)
+
+### Como funciona a detecção?
+
+A chave está em medir a **imperfeição natural do sinal físico**.
+
+No mundo real, nenhum mouse físico consegue enviar pacotes com intervalos matematicamente perfeitos. O hardware USB, o cabo, o sensor óptico e até o tremor da mão introduzem micro-variações de tempo chamadas de **jitter**. Um anti-cheat explora exatamente isso:
+
+| Característica | Hardware Físico Real | Injeção por Software/Hardware |
+|---|---|---|
+| Intervalo entre pacotes | Varia ligeiramente (ex: 1.98ms, 2.01ms, 1.99ms) | Perfeito ou em rajadas (0.0000ms, 0.0000ms) |
+| Desvio padrão (σ) | ≥ 0.06 ms (jitter natural) | ≤ 0.015 ms (precisão inumana) |
+| Burst rate | < 10% mesmo em movimentos agressivos | > 20% consistentemente |
+| Frequência virtual | Estável em torno do polling rate do hardware | Picos absurdos de 2000–9000 Hz |
+
+### Algoritmo implementado
+
+1. **Captura de baixo nível (thread-safe):** A função `WndProc` intercepta eventos `WM_INPUT` sem nenhuma alocação de heap (`stackalloc`) e sem I/O, registrando o timestamp com `Stopwatch` de alta precisão. Os dados são imediatamente enfileirados em uma `ConcurrentQueue`.
+
+2. **Thread de análise separada:** Uma thread de segundo plano consome a fila, calcula o Δt entre pacotes e atualiza uma janela deslizante de 100 amostras.
+
+3. **Métricas calculadas:**
+   - **Desvio padrão (σ):** Mede a regularidade do sinal. Sinal artificial tem σ próximo de zero.
+   - **Burst rate:** Percentual de pacotes com Δt < 0.5 ms — fisicamente impossível no barramento USB real.
+
+4. **Veredito em tempo real:**
+   - ✅ **NATURAL** — σ ≥ 0.06 ms e bursts < 10%
+   - ⚠️ **SUSPEITO** — σ < 0.06 ms ou bursts entre 10–20%
+   - 🔴 **INJEÇÃO DETECTADA** — σ ≤ 0.015 ms ou bursts > 20%
+
+5. **Visualização gráfica:**
+   - **Sparkline** dos últimos 60 pacotes (barras curtas vermelhas = burst)
+   - **Histograma** de distribuição de intervalos por faixa de polling rate
+
+### Limiares calibrados empiricamente
+
+Os thresholds foram validados com hardware físico real:
+- Movendo o mouse normalmente: burst rate < 5%
+- Movendo o mouse de forma extremamente agressiva: burst rate pode chegar a ~20%
+- Injeção por software / KM Box / Macku: burst rate consistentemente acima de 20%
+
+### Como usar
+
+**Requisitos:** .NET 8 SDK, Windows 10/11 x64
+
+```powershell
+git clone https://github.com/Withoutbytes/mouse-polling-monitor.git
+cd mouse-polling-monitor
+dotnet run -c Release
+```
+
+> ⚠️ Execute em um **terminal real** (PowerShell, CMD ou Windows Terminal) — não em terminal integrado de IDE — para que o dashboard gráfico renderize corretamente.
+
+### Aviso legal
+
+Este projeto é estritamente **educacional**. Seu objetivo é demonstrar como sistemas de detecção funcionam, não fornecer meios para contorná-los. O uso de cheats em jogos online viola os termos de serviço dos títulos e pode resultar em banimento permanente.
 
 ---
 
