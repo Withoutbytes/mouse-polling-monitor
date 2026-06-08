@@ -102,4 +102,21 @@ internal static class Win32
 
     [DllImport("kernel32.dll", ExactSpelling = true)]
     public static extern IntPtr GetModuleHandleW(string? lpModuleName);
+
+    [DllImport("kernel32.dll", ExactSpelling = true)]
+    public static extern IntPtr GetStdHandle(int nStdHandle);
+
+    [DllImport("kernel32.dll", ExactSpelling = true)]
+    public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+    [DllImport("kernel32.dll", ExactSpelling = true)]
+    public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+
+    // Enables ANSI/VT100 escape codes on Windows 10+ console.
+    public static void EnableAnsiConsole()
+    {
+        IntPtr handle = GetStdHandle(-11); // STD_OUTPUT_HANDLE
+        if (GetConsoleMode(handle, out uint mode))
+            SetConsoleMode(handle, mode | 0x0004); // ENABLE_VIRTUAL_TERMINAL_PROCESSING
+    }
 }
