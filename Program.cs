@@ -136,7 +136,7 @@ internal sealed class MouseMonitor
 
         if (hwnd == IntPtr.Zero)
         {
-            Console.WriteLine($"  [ERRO] CreateWindowEx ({Marshal.GetLastWin32Error()})");
+            Console.WriteLine($"  [ERROR] CreateWindowEx ({Marshal.GetLastWin32Error()})");
             return;
         }
 
@@ -148,7 +148,7 @@ internal sealed class MouseMonitor
 
         if (!Win32.RegisterRawInputDevices(rid, 1, (uint)Marshal.SizeOf<Win32.RAWINPUTDEVICE>()))
         {
-            Console.WriteLine($"  [ERRO] RegisterRawInputDevices ({Marshal.GetLastWin32Error()})");
+            Console.WriteLine($"  [ERROR] RegisterRawInputDevices ({Marshal.GetLastWin32Error()})");
             return;
         }
 
@@ -262,30 +262,30 @@ internal sealed class MouseMonitor
         _frame.Append(A.Pos(_dashRow + 1));
 
         // ── Metrics ───────────────────────────────────────────────────────────
-        Section(_frame, "ANÁLISE — JANELA DE 100 PACOTES");
+        Section(_frame, "ANALYSIS — 100-PACKET ROLLING WINDOW");
 
-        string waiting = _filled < MinSamples ? $" (aguardando {MinSamples - _filled}...)" : $" (amostras: {_filled})";
+        string waiting = _filled < MinSamples ? $" (waiting {MinSamples - _filled} more...)" : $" (samples: {_filled})";
 
-        Metric(_frame, "  Frequência     :",
-            _filled >= 2 ? $"{avgHz,7:F1} Hz  (Δt médio: {avgDt:F3} ms)" : "aguardando...",
+        Metric(_frame, "  Frequency       :",
+            _filled >= 2 ? $"{avgHz,7:F1} Hz  (avg Δt: {avgDt:F3} ms)" : "waiting...",
             A.White);
 
-        Metric(_frame, "  Desvio padrão  :",
-            _filled >= 2 ? $"{stdDev,7:F3} ms  ({DescribeStd(stdDev)}){waiting}" : "aguardando...",
+        Metric(_frame, "  Std deviation   :",
+            _filled >= 2 ? $"{stdDev,7:F3} ms  ({DescribeStd(stdDev)}){waiting}" : "waiting...",
             StdDevColor(stdDev));
 
-        Metric(_frame, "  Bursts / janela:",
-            _filled >= 2 ? $"{_windowBursts,4} / {_filled,-4}  ({burstRate * 100:F1}%)" : "aguardando...",
+        Metric(_frame, "  Bursts / window :",
+            _filled >= 2 ? $"{_windowBursts,4} / {_filled,-4}  ({burstRate * 100:F1}%)" : "waiting...",
             BurstColor(burstRate));
 
-        Metric(_frame, "  Total capturado:",
-            $"{_totalMovPkts} pacotes  ({_totalBursts} bursts acumulados)",
+        Metric(_frame, "  Total captured  :",
+            $"{_totalMovPkts} packets  ({_totalBursts} total bursts)",
             A.DkGray);
 
         Line(_frame);
 
         // ── Sparkline ─────────────────────────────────────────────────────────
-        Section(_frame, "HISTÓRICO — últimos 60 pacotes  (vermelho = burst)");
+        Section(_frame, "HISTORY — last 60 packets  (red bar = burst)");
 
         _frame.Append("  ┌").Append('─', SparkLen).Append("┐").Append(A.K).Append('\n');
         _frame.Append("  │");
@@ -294,13 +294,13 @@ internal sealed class MouseMonitor
         _frame.Append("  └").Append('─', SparkLen).Append("┘").Append(A.K).Append('\n');
 
         _frame.Append(A.DkGray)
-              .Append($"  escala: 0 ms (burst) → {avgDt * 2.5:F1} ms (alto)".PadRight(70))
+              .Append($"  scale: 0 ms (burst) → {avgDt * 2.5:F1} ms (tall)".PadRight(70))
               .Append(A.R).Append(A.K).Append('\n');
 
         Line(_frame);
 
         // ── Histogram ─────────────────────────────────────────────────────────
-        Section(_frame, "DISTRIBUIÇÃO DE INTERVALOS");
+        Section(_frame, "INTERVAL DISTRIBUTION");
         AppendHistogram(_frame);
 
         Line(_frame);
@@ -308,10 +308,10 @@ internal sealed class MouseMonitor
         // ── Verdict ───────────────────────────────────────────────────────────
         (string icon, string title, string subtitle, string color) = verdict switch
         {
-            Verdict.Natural  => ("✓", "SINAL NATURAL",    "Jitter físico detectado — hardware real",          A.Green),
-            Verdict.Suspeito => ("?", "SINAL SUSPEITO",   "Jitter baixo ou bursts elevados — investigar",     A.Yellow),
-            Verdict.Injecao  => ("!", "INJEÇÃO DETECTADA","Padrão fisicamente impossível para USB real",       A.Red),
-            _                => ("…", "AGUARDANDO DADOS", $"Mova o mouse — {_filled}/{MinSamples} amostras",  A.DkGray),
+            Verdict.Natural  => ("✓", "NATURAL SIGNAL",      "Physical jitter detected — real hardware",              A.Green),
+            Verdict.Suspeito => ("?", "SUSPICIOUS SIGNAL",   "Abnormally low jitter or elevated burst rate",          A.Yellow),
+            Verdict.Injecao  => ("!", "INJECTION DETECTED",  "Pattern physically impossible on real USB hardware",     A.Red),
+            _                => ("…", "WAITING FOR DATA",    $"Move the mouse — {_filled}/{MinSamples} samples",      A.DkGray),
         };
 
         _frame.Append(color);
@@ -323,7 +323,7 @@ internal sealed class MouseMonitor
         _frame.Append("  └────────────────────────────────────────────────────────────────┘").Append(A.K).Append('\n');
 
         _frame.Append(A.DkGray)
-              .Append("  Natural:<10% σ≥0.060ms  │ Suspeito:10-20% σ<0.060ms  │ Injeção:>20% σ≤0.015ms  ")
+              .Append("  Natural:<10% σ≥0.060ms  │ Suspicious:10-20% σ<0.060ms  │ Injection:>20% σ≤0.015ms")
               .Append(A.R).Append(A.K).Append('\n');
 
         // Single write — no flicker
@@ -428,8 +428,8 @@ internal sealed class MouseMonitor
     }
 
     private static string DescribeStd(double sd) =>
-        sd <= StdDevInjecao  ? "precisão inumana" :
-        sd <= StdDevSuspeito ? "jitter suspeito"  : "jitter natural";
+        sd <= StdDevInjecao  ? "inhuman precision" :
+        sd <= StdDevSuspeito ? "suspicious jitter" : "natural jitter";
 
     private static string StdDevColor(double sd) =>
         sd <= StdDevInjecao  ? A.Red :
@@ -448,12 +448,12 @@ internal sealed class MouseMonitor
             $"{A.Cyan}" +
             "╔══════════════════════════════════════════════════════════════════╗\n" +
             "║        MOUSE POLLING RATE MONITOR  v1.0                         ║\n" +
-            "║        Raw Input Diagnostic Tool — Detecção de Injeção          ║\n" +
+            "║        Raw Input Diagnostic Tool — Input Injection Detector      ║\n" +
             "╚══════════════════════════════════════════════════════════════════╝\n" +
             $"{A.DkGray}");
 
         double tickUs = 1_000_000.0 / Stopwatch.Frequency;
-        Console.WriteLine($"  Timer: {Stopwatch.Frequency:N0} Hz ({tickUs:F4} µs/tick)  |  {(IntPtr.Size == 8 ? "x64" : "x86")}  |  Ctrl+C para encerrar");
+        Console.WriteLine($"  Timer: {Stopwatch.Frequency:N0} Hz ({tickUs:F4} µs/tick)  |  {(IntPtr.Size == 8 ? "x64" : "x86")}  |  Ctrl+C to exit");
         Console.Write(A.R);
         Console.WriteLine();
     }
