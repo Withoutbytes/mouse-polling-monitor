@@ -12,10 +12,11 @@ Este é um utilitário de diagnóstico em **C# / .NET 8** que captura dados brut
 
 O projeto simula, em nível conceitual, a lógica que sistemas como o **Vanguard** da Riot Games utilizam para detectar trapaças baseadas em movimentação de mouse — como:
 
-- **Macros por software** (AutoHotkey, scripts de recoil, aim assist artificial)
+- **Macku** — placa de desenvolvimento (hardware embarcado) que emula um dispositivo HID USB para injetar movimentos de mouse diretamente no barramento, contornando o driver do sistema operacional
 - **KM Box** e variantes (dispositivos que emulam teclado/mouse via USB entre dois PCs)
 - **Configurações 2PC** (PC secundário injetando input no PC principal via HDMI capture + emulador HID)
 - **Firmwares modificados** que entregam pacotes fora do padrão físico do barramento USB
+- **Macros por software** (AutoHotkey, scripts de recoil, aim assist artificial)
 
 ### Como funciona a detecção?
 
@@ -82,10 +83,11 @@ This is a **C# / .NET 8** diagnostic utility that captures raw hardware input di
 
 The project conceptually simulates the logic used by systems like **Riot Games' Vanguard** to detect mouse-movement-based cheats, including:
 
-- **Software macros** (AutoHotkey, recoil scripts, artificial aim assist)
+- **Macku** — an embedded development board that emulates a USB HID device to inject mouse movements directly on the USB bus, bypassing the OS driver stack
 - **KM Box** and variants (devices that emulate keyboard/mouse via USB between two PCs)
 - **2PC setups** (a secondary PC injecting input into the main PC via HDMI capture + HID emulator)
 - **Modified firmware** delivering packets outside the physical USB bus standard
+- **Software macros** (AutoHotkey, recoil scripts, artificial aim assist)
 
 ### How does the detection work?
 
