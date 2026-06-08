@@ -1,5 +1,8 @@
 # Mouse Polling Rate Monitor
 
+<img width="1077" height="542" alt="image" src="https://github.com/user-attachments/assets/dd7735c1-5080-403b-84bd-c99a15a1c269" />
+
+
 > **Simulação educacional** de técnicas de detecção usadas por anti-cheats como o Vanguard (Riot Games) para identificar injeção de input de mouse — macros por software, KM Box, adaptadores 2PC e emuladores de hardware.
 
 ---
