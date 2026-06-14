@@ -2,6 +2,15 @@
 
 <img width="1077" height="542" alt="image" src="https://github.com/user-attachments/assets/dd7735c1-5080-403b-84bd-c99a15a1c269" />
 
+
+https://github.com/user-attachments/assets/8771def1-b25a-4898-be5b-bf8447fcdc46
+
+
+
+https://github.com/user-attachments/assets/718d7fe8-0afd-4d64-b5ed-16f58de1a01f
+
+
+
 > **Educational simulation** of detection techniques used by anti-cheats like Vanguard (Riot Games) to identify mouse input injection — Macku, KM Box, 2PC adapters and hardware emulators.
 
 ---
