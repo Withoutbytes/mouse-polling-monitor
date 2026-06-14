@@ -1,0 +1,128 @@
+<Window x:Class="MousePollingMonitor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Mouse Polling Rate Monitor v1.0"
+        Width="600" Height="760"
+        MinWidth="520" MinHeight="640"
+        Background="#12121f"
+        Foreground="#e0e0e0"
+        FontFamily="Consolas"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid Margin="24,18,24,18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>   <!-- header -->
+            <RowDefinition Height="Auto"/>   <!-- big Hz -->
+            <RowDefinition Height="Auto"/>   <!-- section: history -->
+            <RowDefinition Height="60"/>     <!-- sparkline canvas -->
+            <RowDefinition Height="Auto"/>   <!-- spark scale -->
+            <RowDefinition Height="Auto"/>   <!-- metrics row -->
+            <RowDefinition Height="Auto"/>   <!-- verdict -->
+            <RowDefinition Height="Auto"/>   <!-- log header -->
+            <RowDefinition Height="*"/>      <!-- log list -->
+        </Grid.RowDefinitions>
+
+        <!-- ── Header ─────────────────────────────────── -->
+        <Grid Grid.Row="0" Margin="0,0,0,18">
+            <StackPanel>
+                <TextBlock Text="MOUSE POLLING RATE MONITOR  v1.0"
+                           Foreground="#00d4d4" FontSize="14" FontWeight="Bold"/>
+                <TextBlock x:Name="txtTimerInfo"
+                           Foreground="#333355" FontSize="10" Margin="0,3,0,0"/>
+            </StackPanel>
+            <CheckBox x:Name="chkTopmost"
+                      Content="Always on Top"
+                      HorizontalAlignment="Right" VerticalAlignment="Center"
+                      Foreground="#444466" FontSize="10"
+                      Checked="Topmost_Changed" Unchecked="Topmost_Changed"/>
+        </Grid>
+
+        <!-- ── Instantaneous Hz (big) ─────────────────── -->
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,22">
+            <TextBlock x:Name="txtInstantHz" Text="- - -"
+                       Foreground="White" FontSize="80" FontWeight="Bold"
+                       HorizontalAlignment="Center" LineHeight="88"/>
+            <TextBlock Text="Hz  ·  instantaneous  (1-second window)"
+                       Foreground="#3a3a5a" FontSize="11"
+                       HorizontalAlignment="Center" Margin="0,2,0,0"/>
+        </StackPanel>
+
+        <!-- ── Section: History ───────────────────────── -->
+        <TextBlock Grid.Row="2"
+                   Text="── HISTORY — last 60 packets  (red = burst) ──"
+                   Foreground="#006060" FontSize="11" Margin="0,0,0,5"/>
+
+        <!-- ── Sparkline ──────────────────────────────── -->
+        <Border Grid.Row="3" Background="#0a0a18" BorderBrush="#1c1c30" BorderThickness="1">
+            <Canvas x:Name="sparkCanvas"
+                    SizeChanged="SparkCanvas_SizeChanged"/>
+        </Border>
+
+        <!-- ── Spark scale label ──────────────────────── -->
+        <TextBlock Grid.Row="4" x:Name="txtSparkScale"
+                   Text="scale: — "
+                   Foreground="#666688" FontSize="11"
+                   HorizontalAlignment="Right"
+                   Margin="0,3,2,10"/>
+
+        <!-- ── Metrics row ────────────────────────────── -->
+        <UniformGrid Grid.Row="5" Rows="1" Columns="4" Margin="0,0,0,16">
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock Text="AVG HZ" Foreground="#444466" FontSize="9"/>
+                <TextBlock x:Name="txtAvgHz" Text="---"
+                           Foreground="#e0e0e0" FontSize="22" FontWeight="Bold"/>
+            </StackPanel>
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock Text="STD DEV" Foreground="#444466" FontSize="9"/>
+                <TextBlock x:Name="txtStdDev" Text="---"
+                           Foreground="#e0e0e0" FontSize="22" FontWeight="Bold"/>
+            </StackPanel>
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock Text="BURST RATE" Foreground="#444466" FontSize="9"/>
+                <TextBlock x:Name="txtBurstRate" Text="---"
+                           Foreground="#e0e0e0" FontSize="22" FontWeight="Bold"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="SAMPLES" Foreground="#444466" FontSize="9"/>
+                <TextBlock x:Name="txtSamples" Text="0"
+                           Foreground="#888899" FontSize="22" FontWeight="Bold"/>
+            </StackPanel>
+        </UniformGrid>
+
+        <!-- ── Verdict box ────────────────────────────── -->
+        <Border Grid.Row="6" x:Name="verdictBorder"
+                BorderThickness="1" CornerRadius="3"
+                Padding="16,12" Margin="0,0,0,20"
+                Background="#0d0d1e" BorderBrush="#333355">
+            <StackPanel>
+                <TextBlock x:Name="txtVerdictTitle"
+                           Text="…  WAITING FOR DATA"
+                           Foreground="#555577"
+                           FontSize="15" FontWeight="Bold"/>
+                <TextBlock x:Name="txtVerdictSub"
+                           Text="Move the mouse to start collecting samples"
+                           Foreground="#333355"
+                           FontSize="10" Margin="0,5,0,0"/>
+                <TextBlock x:Name="txtVerdictNote"
+                           Text="Natural: σ≥0.060ms  bursts&lt;10%  │  Suspicious: σ&lt;0.060ms or bursts 10-20%  │  Injection: σ≤0.015ms or bursts&gt;20%"
+                           Foreground="#2a2a3a"
+                           FontSize="8" Margin="0,6,0,0"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ── Log section label ──────────────────────── -->
+        <TextBlock Grid.Row="7"
+                   Text="── LOG ──"
+                   Foreground="#006060" FontSize="11" Margin="0,0,0,5"/>
+
+        <!-- ── Log list ───────────────────────────────── -->
+        <ListBox Grid.Row="8"
+                 x:Name="logList"
+                 Background="#08080f" BorderBrush="#1a1a2e" BorderThickness="1"
+                 FontSize="10" Foreground="#008844"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.ScrollUnit="Pixel"/>
+    </Grid>
+</Window>
